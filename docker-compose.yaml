@@ -1,0 +1,13 @@
+services:
+  redis:
+    image: redis:latest
+    container_name: telegram_redis_container
+    restart: always
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
+
+volumes:
+  redis_data:

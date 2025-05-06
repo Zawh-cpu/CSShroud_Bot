@@ -1,0 +1,16 @@
+{
+    "BASE_URL": "http://localhost:5271",
+    "API_KEY": "your-secret-key",
+    "BOT_TOKEN": "6141560401:AAFHK2Wo8mC7dxqlYwuFtNe8gGrG08DA_X8",
+    "REDIS_HOST": "localhost",
+    "REDIS_PORT": 6380,
+    "REDIS_DB": 0,
+    "LANGUAGES_FOLDER": "src/infrastructure/localization",
+    "AI": {
+        "TOKEN": "sk-fOVrmb6WzQEOcSlrjrKRhPoGlGBxvFk4",
+        "BASE_MODEL": "gpt-4o-mini",
+        "BASE_URL": "https://api.proxyapi.ru",
+        "TOKEN_LIMIT": 128,
+        "MAX_RETRIES": 3
+    }
+}
