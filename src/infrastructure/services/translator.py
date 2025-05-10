@@ -1,6 +1,7 @@
 import pathlib
 import json
 import functools
+from datetime import datetime, timezone, timedelta
 
 
 class Translator:
@@ -20,3 +21,7 @@ class Translator:
     @functools.cache
     def translate(self, text, lang="ru-RU"):
         return self._lang_base.get(lang, {}).get(text, text)
+
+    @staticmethod
+    def date_to_text(date: datetime, utc_offset=3):
+        return date.astimezone(timezone(timedelta(hours=utc_offset))).strftime("%y/%m/%d %H:%M:%S %Z")

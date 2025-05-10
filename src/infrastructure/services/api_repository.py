@@ -1,7 +1,9 @@
 import aiohttp
 
+from src import UserData
 from src.core import UserSessionTokens
-from src.infrastructure.config import Config
+from src.application.dtos import KeysDto
+
 
 class ApiRepository:
     _instance = None
@@ -39,14 +41,29 @@ class ApiRepository:
                 return None
             return (await response.json()).get("actionToken")
 
-    async def get_user_info_async(self, action_token: str) -> dict:
+    async def get_user_info_async(self, action_token: str) -> UserData or None:
         async with self.session.get(f"{self.base_url}/api/v1/user/me", headers={"Authorization": f"Bearer {action_token}"}) as response:
             if response.status != 200:
-                return dict()
-            return await response.json()
+                return None
+            return UserData(await response.json())
 
     async def get_product_tags(self) -> list:
         async with self.session.get(f"{self.base_url}/api/v1/product/tags") as response:
             if response.status != 200:
                 return list()
             return await response.json()
+
+    async def get_rates(self) -> list:
+        async with self.session.get(f"{self.base_url}/api/v1/rate/rates") as response:
+            if response.status != 200:
+                return list()
+            return await response.json()
+
+    async def get_my_keys(self, action_token: str, page=0, size=5) -> KeysDto or None:
+        async with self.session.get(f"{self.base_url}/api/v1/key?size={size}&page={page}", headers={"Authorization": f"Bearer {action_token}"}) as response:
+            if response.status != 200:
+                return None
+
+            return KeysDto(keys_count=response.headers.get("X-Total-Count"),
+                           active_keys=response.headers.get("X-Enabled-Count"),
+                           keys=await response.json())

@@ -18,6 +18,10 @@ from src.presentation import scenes
 
 scene_register = SceneRegistry(dispatcher)
 scene_register.register(scenes.main.MainScene)
+scene_register.register(scenes.profile.MainScene)
+scene_register.register(scenes.my_rate.MainScene)
+scene_register.register(scenes.all_rates.MainScene)
+scene_register.register(scenes.my_keys.MainScene)
 scene_register.register(scenes.add_item.MainScene, scenes.add_item.PhotosAndName, scenes.add_item.ConfirmationScene)
 
 dispatcher.include_router(command_router)
