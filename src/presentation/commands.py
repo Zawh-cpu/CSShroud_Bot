@@ -47,3 +47,10 @@ async def command_rates(message: types.Message, state: context.FSMContext, scene
 async def command_keys(message: types.Message, state: context.FSMContext, scenes: scene.ScenesManager):
     await state.update_data({"by_command": True})
     await scenes.enter(my_keys.MainScene)
+
+
+@router.message(filters.Command("add_key"))
+@router.callback_query(aiogram.F.data == "add_key")
+async def command_add_key(message: types.Message, state: context.FSMContext, scenes: scene.ScenesManager):
+    await state.update_data({"by_command": True})
+    await scenes.enter(add_key.SelectProtocol)

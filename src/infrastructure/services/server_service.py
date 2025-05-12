@@ -1,7 +1,7 @@
 import aiohttp
 
 from src.infrastructure.services import UserData, ApiRepository, RedisRepository
-from src.core import UserSessionTokens, Rate
+from src.core import UserSessionTokens, Rate, VpnProtocol
 from src.infrastructure.config import Config
 
 class ServerService:
@@ -18,3 +18,6 @@ class ServerService:
 
     async def get_rates(self):
         return [Rate(**data) for data in await self._api_repository.get_rates()]
+
+    async def get_protocols(self):
+        return await self._api_repository.get_protocols()

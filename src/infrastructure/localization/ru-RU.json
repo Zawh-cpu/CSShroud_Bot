@@ -7,6 +7,8 @@
   "ui-tag-my_rate": "\uD83D\uDD19 Мой тариф",
   "ui-tag-my_keys": "\uD83D\uDD11 Мои ключи",
   "ui-tag-all_rates": "\uD83D\uDED2 Доступные тарифы",
+  "ui-tag-create_key-ok": "\uD83D\uDFE2 Создать ключ ({0}/{1})",
+  "ui-tag-create_key-forbidden": "\uD83D\uDEAB Недоступно ({0}/{1})",
   "profile": "\uD83D\uDC68\uD83C\uDFFD\u200D\uD83D\uDCBB Профиль",
   "profile-text": "  - <b>✅ Верификация:</b> {verification_status}\n\n  - <b>\uD83C\uDD94 ID:</b> {id}\n  - <b>\uD83E\uDDD1\u200D\uD83D\uDCBC Никнейм:</b> {nickname}\n  - <b>\uD83D\uDD11 Логин:</b> {login}\n\n<b>Статус</b>\n  - <b>\uD83C\uDF96\uFE0F Роль:</b> {role_name}\n  - <b>\uD83D\uDCBC Тариф:</b> {rate_name}\n  - <b>⏳ Оплачен до:</b> {payed_until}\n\n  - <b>\uD83D\uDDD3\uFE0F Аккаунт создан:</b> {created_at}",
   "rate-default": "➖",
@@ -17,5 +19,9 @@
   "rates-rate_desc-text": "<blockquote><b>{name}</b>   - <b>{cost}₽/мес.</b>\n\n  - <b>\uD83D\uDD11 Максимум активных ключей:</b> {keys_max}\n  - <b>\uD83D\uDDA5 Максимум устройств:</b> {devices_max}\n\n  - <b>\uD83D\uDCE5 Входящая скорость до:</b> {download_speed} МБ/сек.\n  - <b>\uD83D\uDCE4 Исходящая скорость до:</b> {upload_speed} МБ/сек.</blockquote>",
   "rates-rate_desc-compare-text": "<blockquote><b>{name}</b>   - <b>{cost}₽/мес.</b>  <i>({compare_cost}₽/мес.)</i>\n\n  - <b>\uD83D\uDD11 Максимум активных ключей:</b> {keys_max}  <i>({compare_keys_max})</i>\n  - <b>\uD83D\uDDA5 Максимум устройств:</b> {devices_max}  <i>({compare_devices_max})</i>\n\n  - <b>\uD83D\uDCE5 Входящая скорость до:</b> {download_speed} МБ/сек.  <i>({compare_download_speed} МБ/сек.)</i>\n  - <b>\uD83D\uDCE4 Исходящая скорость до:</b> {upload_speed} МБ/сек.  <i>({compare_download_speed} МБ/сек.)</i></blockquote>",
   "rates-rate_desc-is_private": "\n\n<u>Ваш тариф является приватным.</u>",
-  "my_keys-text": "  - <b>\uD83D\uDCE6 Всего ключей:</b> {keys_count}\n  - <b>\uD83D\uDCC8 Максимум ключей:</b> {max_keys}\n  - <b>\uD83D\uDFE2 Активно ключей:</b> {active_keys}"
+  "my_keys": "\uD83D\uDD11 Мои ключи",
+  "my_keys-text": "  - <b>\uD83D\uDCE6 Всего ключей:</b> {keys_count}\n  - <b>\uD83D\uDCC8 Максимум ключей:</b> {max_keys}\n  - <b>\uD83D\uDFE2 Активно ключей:</b> {active_keys}",
+  "location-frankfurt": "\uD83C\uDDE9\uD83C\uDDEA Франкфурт",
+  "protocol-Vless-short": "XTLS-R",
+  "protocol-Vless": "XTLS-REALITY"
 }

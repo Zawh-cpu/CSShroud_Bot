@@ -1,8 +1,9 @@
 import aiohttp
 
-from src import UserData
+from src import UserData, VpnProtocol
 from src.core import UserSessionTokens
-from src.application.dtos import KeysDto
+from src.core import Key
+from src.application.dtos import KeysDto, AddKeyDto, Result
 
 
 class ApiRepository:
@@ -59,11 +60,24 @@ class ApiRepository:
                 return list()
             return await response.json()
 
+    async def get_protocols(self) -> list:
+        async with self.session.get(f"{self.base_url}/api/v1/protocol/available") as response:
+            if response.status != 200:
+                return list()
+            return [VpnProtocol.from_str(data) for data in await response.json()]
+
     async def get_my_keys(self, action_token: str, page=0, size=5) -> KeysDto or None:
         async with self.session.get(f"{self.base_url}/api/v1/key?size={size}&page={page}", headers={"Authorization": f"Bearer {action_token}"}) as response:
             if response.status != 200:
                 return None
 
-            return KeysDto(keys_count=response.headers.get("X-Total-Count"),
-                           active_keys=response.headers.get("X-Enabled-Count"),
-                           keys=await response.json())
+            return KeysDto(keys_count=int(response.headers.get("X-Total-Count", "0")),
+                           active_keys=int(response.headers.get("X-Enabled-Count", "0")),
+                           keys=[Key(key) for key in await response.json()])
+
+    async def add_key(self, data: AddKeyDto, action_token: str) -> Result:
+        async with self.session.post(f"{self.base_url}/api/v1/key", json=data.dump(), headers={"Authorization": f"Bearer {action_token}"}) as response:
+            if response.status != 200:
+                return Result(status_code=response.status, value=None)
+
+            return Result(status_code=response.status, value=(await response.json()).get("id"))
