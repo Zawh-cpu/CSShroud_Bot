@@ -81,3 +81,24 @@ class ApiRepository:
                 return Result(status_code=response.status, value=None)
 
             return Result(status_code=response.status, value=(await response.json()).get("id"))
+
+    async def get_key(self, key_id: str, action_token: str) -> Result:
+        async with self.session.get(f"{self.base_url}/api/v1/key/{key_id}", headers={"Authorization": f"Bearer {action_token}"}) as response:
+            if response.status != 200:
+                return Result(status_code=response.status, value=None)
+
+            return Result(status_code=response.status, value=Key(await response.json()))
+
+    async def key_turn_on(self, key_id: str, action_token: str) -> Result:
+        async with self.session.get(f"{self.base_url}/api/v1/key/{key_id}/switch/enable", headers={"Authorization": f"Bearer {action_token}"}) as response:
+            if response.status != 200:
+                return Result(status_code=response.status, value=None)
+
+            return Result(status_code=response.status, value=None)
+
+    async def key_turn_off(self, key_id: str, action_token: str) -> Result:
+        async with self.session.get(f"{self.base_url}/api/v1/key/{key_id}/switch/disable", headers={"Authorization": f"Bearer {action_token}"}) as response:
+            if response.status != 200:
+                return Result(status_code=response.status, value=None)
+
+            return Result(status_code=response.status, value=None)

@@ -17,7 +17,7 @@ class Key:
     protocol: VpnProtocol
     server: Server
     user_id: str
-    createdAt: dt.datetime
+    created_at: dt.datetime
     status: KeyStatus
 
     def __init__(self, data):
@@ -26,5 +26,6 @@ class Key:
         self.protocol = VpnProtocol.from_str(data["protocol"])
         self.server = Server(data["server"])
         self.user_id = data["userId"]
-        self.createdAt = data["createdAt"]
+        created_at = data.get('createdAt')
+        self.created_at = dt.datetime.fromisoformat(created_at) if created_at else None
         self.status = KeyStatus(data["status"])

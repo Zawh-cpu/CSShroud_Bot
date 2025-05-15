@@ -9,6 +9,10 @@
   "ui-tag-all_rates": "\uD83D\uDED2 Доступные тарифы",
   "ui-tag-create_key-ok": "\uD83D\uDFE2 Создать ключ ({0}/{1})",
   "ui-tag-create_key-forbidden": "\uD83D\uDEAB Недоступно ({0}/{1})",
+  "ui-tag-key-switch-off": "⏸\uFE0F Выключить",
+  "ui-tag-key-switch-on": "▶\uFE0F Включить",
+  "ui-tag-key-get_link": "\uD83D\uDD17 Получить ссылку",
+  "ui-tag-key-get_qr": "\uD83D\uDCF7 Получить QR",
   "profile": "\uD83D\uDC68\uD83C\uDFFD\u200D\uD83D\uDCBB Профиль",
   "profile-text": "  - <b>✅ Верификация:</b> {verification_status}\n\n  - <b>\uD83C\uDD94 ID:</b> {id}\n  - <b>\uD83E\uDDD1\u200D\uD83D\uDCBC Никнейм:</b> {nickname}\n  - <b>\uD83D\uDD11 Логин:</b> {login}\n\n<b>Статус</b>\n  - <b>\uD83C\uDF96\uFE0F Роль:</b> {role_name}\n  - <b>\uD83D\uDCBC Тариф:</b> {rate_name}\n  - <b>⏳ Оплачен до:</b> {payed_until}\n\n  - <b>\uD83D\uDDD3\uFE0F Аккаунт создан:</b> {created_at}",
   "rate-default": "➖",
@@ -23,5 +27,6 @@
   "my_keys-text": "  - <b>\uD83D\uDCE6 Всего ключей:</b> {keys_count}\n  - <b>\uD83D\uDCC8 Максимум ключей:</b> {max_keys}\n  - <b>\uD83D\uDFE2 Активно ключей:</b> {active_keys}",
   "location-frankfurt": "\uD83C\uDDE9\uD83C\uDDEA Франкфурт",
   "protocol-Vless-short": "XTLS-R",
-  "protocol-Vless": "XTLS-REALITY"
+  "protocol-Vless": "XTLS-REALITY",
+  "view_key-text": "  <b>- \uD83C\uDD94 ID</b>: {key_id}\n  <b>- \uD83E\uDEAA UUID</b>: {key_id}\n  <b>- \uD83E\uDEA7 Имя</b>: {key_name}\n\n  <b>- \uD83C\uDF0D Регион</b>: {key_location}\n  <b>- \uD83D\uDCE1 Протокол</b>: {key_protocol}\n  <b>- \uD83D\uDD0C Порт</b>: {key_port}\n\n  <b>- \uD83C\uDF10 Весь трафик</b>: {all_traffic}\n  <b>- \uD83D\uDCE5 Получено</b>: {download_traffic}\n  <b>- \uD83D\uDCE4 Отправлено</b>: {upload_traffic}\n\n  <b>- \uD83D\uDCC5 Создан</b>: {created_at}\n  <b>- ✅ Активен</b>: {key_is_active}"
 }
