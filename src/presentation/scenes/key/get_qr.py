@@ -1,24 +1,23 @@
 import aiogram
 
-from aiogram import filters, types
-from aiogram.fsm import scene, context
+from aiogram import types
+from aiogram.fsm import scene
 from dependency_injector.wiring import inject, Provide
 
-from src.application.dtos import PatchKeyDto
-from src.core import UserSession, Key, KeyStatus
+from src.application.factories import KeyLinkFactory
+from src.core import UserSession
 from src.infrastructure.services import Translator, ApiRepository
-from src.infrastructure.services.rights_service import RightsService, Rights
 from src.presentation import tools
 from src.container import Container
 
 category = "view_key"
 
 
-class RenameScene(scene.Scene, state="view_key-rename"):
+class GetQRScene(scene.Scene, state="view_key-get_qr"):
 
     @scene.on.message.enter()
     @scene.on.callback_query.enter()
-    @tools.request_handler(auth=False, category=category, state="rename")
+    @tools.request_handler(auth=True, category=category, state="get_qr")
     @inject
     async def default_handler(self, query: types.CallbackQuery or types.Message,
                               translator: Translator = Provide[Container.translator],
@@ -29,7 +28,16 @@ class RenameScene(scene.Scene, state="view_key-rename"):
         if not key_id:
             raise Exception("error-key-not-selected")
 
-        text = translator.translate("view_key-rename-text")
+        data = await api_repository.key_get_connect_data(key_id, user.tokens.action_token)
+        if not data:
+            raise Exception("error-key-action_aborted")
+
+        link = KeyLinkFactory.get_link(data.value, translator.translate("key-name-short").format(
+            protocol=translator.translate(f"protocol-{data.value.protocol.name}-short"),
+            short_id=translator.key_short_id(data.value.id)
+        ))
+
+        qr_data = tools.QRMaker.get_from_str(link)
 
         keyboard = [
             [
@@ -42,27 +50,9 @@ class RenameScene(scene.Scene, state="view_key-rename"):
             ]
         ]
 
-        return {"text": text, "category_args": (translator.key_short_id(key_id),), "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
-
-    @scene.on.message()
-    @tools.request_handler(auth=True)
-    @inject
-    async def rename(self, query: types.CallbackQuery or types.Message,
-                     api_repository: ApiRepository = Provide[Container.api_repository],
-                     user: UserSession = None):
-
-        key_id = await self.wizard.get_value("selected_key")
-        if not key_id:
-            raise Exception("error-key-not-selected")
-
-        result = await api_repository.key_patch(key_id, PatchKeyDto(
-            name=query.text[:96]
-        ), user.tokens.action_token)
-
-        if not result.is_success():
-            raise Exception("error-key-rename-aborted")
-
-        await self.wizard.back()
+        return {"category_args": (translator.key_short_id(key_id),),
+                "media": [types.BufferedInputFile(qr_data.read(), filename="link-qr.png")],
+                "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
 
     @scene.on.callback_query(tools.OptSelector.filter(aiogram.F.o == "back"))
     async def back(self, query: types.CallbackQuery or types.Message, callback_data: tools.OptSelector):

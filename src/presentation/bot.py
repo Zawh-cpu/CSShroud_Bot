@@ -23,7 +23,7 @@ scene_register.register(scenes.my_rate.MainScene)
 scene_register.register(scenes.all_rates.MainScene)
 scene_register.register(scenes.my_keys.MainScene)
 scene_register.register(scenes.add_key.SelectProtocol)
-scene_register.register(scenes.key.MainScene)
+scene_register.register(scenes.key.MainScene, scenes.key.RenameScene, scenes.key.DeleteScene, scenes.key.GetLinkScene, scenes.key.GetQRScene, scenes.key.AppsToConnect)
 scene_register.register(scenes.add_item.MainScene, scenes.add_item.PhotosAndName, scenes.add_item.ConfirmationScene)
 
 dispatcher.include_router(command_router)

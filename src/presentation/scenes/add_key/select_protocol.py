@@ -16,6 +16,8 @@ from src.container import Container
 from src.application.dtos import AddKeyDto
 from src.presentation.tools import PageScene, IntSelector
 
+from src.presentation.scenes import key
+
 category = "add_key"
 
 
@@ -52,6 +54,8 @@ class SelectProtocol(PageScene, state="add_key"):
 
         if result.is_success():
             await self.wizard.update_data({"selected_key": result.value})
+            await self.wizard.goto(key.MainScene)
+            return
 
         match result.status_code:
             case 403:

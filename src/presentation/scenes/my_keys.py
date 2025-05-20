@@ -56,7 +56,7 @@ class MainScene(PageScene, state="my_keys"):
                  callback_data="None"),
              ],
             *[[types.InlineKeyboardButton(
-                text=f"{"🟢" if key.status == KeyStatus.Enabled else "🔴"}  #{key.id[4:8] + key.id[9:13]} | {translator.translate(f"location-{key.server.location}")} [{translator.translate(f"protocol-{key.protocol.name}-short")}] | {key.name}",
+                text=f"{"🟢" if key.status == KeyStatus.Enabled else "🔴"}  #{translator.key_short_id(key.id)} | {translator.translate(f"location-{key.server.location}")} [{translator.translate(f"protocol-{key.protocol.name}-short")}] | {key.name}",
                 callback_data=Selector(i=key.id).pack())] for key in my_keys_dto.keys],
             [
                 types.InlineKeyboardButton(text="◀️", callback_data="--page" if page > 0 else "None"),

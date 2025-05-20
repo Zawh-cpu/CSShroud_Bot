@@ -25,3 +25,7 @@ class Translator:
     @staticmethod
     def date_to_text(date: datetime, utc_offset=3):
         return date.astimezone(timezone(timedelta(hours=utc_offset))).strftime("%y/%m/%d %H:%M:%S %Z")
+
+    @staticmethod
+    def key_short_id(key_id: str):
+        return key_id[4:8] + key_id[9:13]

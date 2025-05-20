@@ -4,6 +4,7 @@ import time
 
 from aiogram import types
 from aiogram.fsm import scene
+from pycparser.ply.yacc import resultlimit
 
 from src import UserRepository
 
@@ -12,7 +13,7 @@ from src.container import Container
 from src.infrastructure.services import Translator
 
 
-def request_handler(auth=True, category=None, state=None, callback_index=1, bypass_if_command=False):
+def request_handler(auth=True, category=None, category_args=None, state=None, callback_index=1, bypass_if_command=False):
     def decorator(func):
         @functools.wraps(func)
         @inject
@@ -49,7 +50,17 @@ def request_handler(auth=True, category=None, state=None, callback_index=1, bypa
                     else:
                         header_text = f"<b>{translator.translate(category)}</b>"
 
-                    result["text"] = f"{header_text}\n\n{result.get("text", "")}"
+                    result_args = result.get("category_args")
+                    if result_args:
+                        result["text"] = f"{header_text.format(*result_args)}\n\n{result.get("text", "")}"
+                    else:
+                        result["text"] = f"{header_text}\n\n{result.get("text", "")}"
+
+                    media = result.get("media")
+                    if media:
+                        await query.message.delete()
+                        await query.message.answer_photo(photo=media[0], caption=result.get("text", ""), reply_markup=result.get("reply_markup", None))
+                        return
 
                     if isinstance(query, types.CallbackQuery):
                         if query.message.text and (dt.datetime.now(dt.UTC) - query.message.date).days < 1:

@@ -1,9 +1,10 @@
 import aiohttp
 
 from src import UserData, VpnProtocol
+from src.application.dtos.key_connection_dto import KeyConnectionDto
 from src.core import UserSessionTokens
 from src.core import Key
-from src.application.dtos import KeysDto, AddKeyDto, Result
+from src.application.dtos import KeysDto, AddKeyDto, Result, PatchKeyDto
 
 
 class ApiRepository:
@@ -102,3 +103,24 @@ class ApiRepository:
                 return Result(status_code=response.status, value=None)
 
             return Result(status_code=response.status, value=None)
+
+    async def key_patch(self, key_id: str, patch_data: PatchKeyDto, action_token: str) -> Result:
+        async with self.session.patch(f"{self.base_url}/api/v1/key/{key_id}", json=patch_data.dump(), headers={"Authorization": f"Bearer {action_token}"}) as response:
+            if response.status != 200:
+                return Result(status_code=response.status, value=None)
+
+            return Result(status_code=response.status, value=None)
+
+    async def key_delete(self, key_id: str, action_token: str) -> Result:
+        async with self.session.delete(f"{self.base_url}/api/v1/key/{key_id}", headers={"Authorization": f"Bearer {action_token}"}) as response:
+            if response.status != 200:
+                return Result(status_code=response.status, value=None)
+
+            return Result(status_code=response.status, value=None)
+
+    async def key_get_connect_data(self, key_id: str, action_token: str) -> Result:
+        async with self.session.get(f"{self.base_url}/api/v1/key/{key_id}/connect", headers={"Authorization": f"Bearer {action_token}"}) as response:
+            if response.status != 200:
+                return Result(status_code=response.status, value=None)
+
+            return Result(status_code=response.status, value=KeyConnectionDto(await response.json()))
