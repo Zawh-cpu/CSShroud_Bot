@@ -49,5 +49,11 @@
   "view_key-get_link-text": "<code>{link}</code>",
   "view_key-apps": "\uD83D\uDCF2Приложения для подключения",
   "view_key-apps-text": "<b>Приложения для подключения к <u>XTLS-REALITY</u></b>\n\n<b>\uD83D\uDCBB Windows</b>\n  •   <a href='https://github.com/InvisibleManVPN/InvisibleMan-XRayClient/releases/download/v2.3.2/InvisibleManXRay-x64.zip'>Invisible Man XRay (x64) \uD83E\uDD77\uD83C\uDFFD</a>\n  •   <a href='https://github.com/MatsuriDayo/nekoray/releases/download/3.26/nekoray-3.26-2023-12-09-windows64.zip'>Nekobox (x64) \uD83D\uDC31</a>\n  •   <a href='https://github.com/2dust/v2rayN/releases'>v2rayN (x64 && ARM) \uD83D\uDD2D</a>\n\n<b>\uD83D\uDCF1 Android</b>\n  •   <a href='https://play.google.com/store/apps/details?id=moe.nb4a&hl=ru'>Nekobox \uD83D\uDC31</a>\n  •   <a href='https://play.google.com/store/apps/details?id=com.v2ray.ang'>v2rayNG \uD83D\uDD2D</a>\n\n<b>\uD83D\uDC27 Linux</b>\n  •   <a href='https://github.com/MatsuriDayo/nekoray/releases/tag/3.26'>Nekobox \uD83D\uDC31</a>\n\n<b>\uD83C\uDF4E MacOS / IOS</b>\n  •   <a href='https://apps.apple.com/us/app/foxray/id6448898396'>FoXray \uD83E\uDD8A</a>\n  •   <a href='https://apps.apple.com/us/app/streisand/id6450534064'>Streisand \uD83E\uDDEC</a> (iOS only)",
-  "how_to_use-text": "\uD83D\uDCF2Приложения для подключения"
+  "how_to_use-text": "\uD83D\uDCF2Приложения для подключения",
+  "hook-mail-text": "<b>\uD83D\uDCEC Новое сообщение</b>\n\n  - <b>\uD83D\uDCE4 Отправитель:</b> {sender}\n  - <b>\uD83D\uDCE5 Получатель:</b> {recipient}\n\n<blockquote><b>{title}</b>\n\n{content}</blockquote>",
+  "hook-mail-verified-text": "<b>\uD83D\uDCEC Новое сообщение</b>\n\n  - <b>\uD83D\uDCE4 Отправитель (\uD83C\uDF96\uFE0F):</b> {sender}\n  - <b>\uD83D\uDCE5 Получатель:</b> {recipient}\n\n<blockquote><b>{title}</b>\n\n{content}</blockquote>",
+  "hook-mail-preserved-rate_expired-title": "\uD83E\uDD40 Тариф истёк",
+  "hook-mail-preserved-rate_expired-content": "Добрый день, уведомляем вас, что ваш тариф истёк. Ваши ключи и дополнительные опции были отключены.\n\nДля восстановления тарифа обратитесь к @ZawhZ",
+  "hook-mail-preserved-rate_expiration-title": "⚠\uFE0F Осталось {0} дн(я/ей) до истечения тарифа!",
+  "hook-mail-preserved-rate_expiration-content": "Добрый день, уведомляем вас, что до окончания срока действия вашего тарифа осталось <b>{days_left} дн(я/ей).</b>\n\n<blockquote>Сведения к оплате:\n\n    <b>\uD83D\uDCBC Тариф</b>: {rate_name}\n    <b>\uD83D\uDCB8 Необходимо внести</b>: {rate_cost}₽\n\n</blockquote>\nДля продления тарифа обратитесь к @ZawhZ"
 }

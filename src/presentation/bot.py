@@ -32,11 +32,14 @@ from src.presentation.middlewares import album_middleware
 
 dispatcher.message.middleware(album_middleware.AlbumMiddleware())
 
+from . import plugin
 
 @inject
 async def start_telegram_bot(config: Config = Provide[Container.config]):
     print("afrwaefqf")
     tgbot = aiogram.Bot(token=config.BOT_TOKEN,
                     default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+
+    plugin.bot = tgbot
 
     await dispatcher.start_polling(tgbot, skip_updates=True)

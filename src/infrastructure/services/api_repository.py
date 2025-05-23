@@ -124,3 +124,10 @@ class ApiRepository:
                 return Result(status_code=response.status, value=None)
 
             return Result(status_code=response.status, value=KeyConnectionDto(await response.json()))
+
+    async def get_users(self, action_token: str, page=0, size=10) -> Result:
+        async with self.session.get(f"{self.base_url}/api/v1/user/users?size={size}&page={page}", headers={"Authorization": f"Bearer {action_token}"}) as response:
+            if response.status != 200:
+                return Result(status_code=response.status, value=None)
+
+            return Result(status_code=response.status, value=UsersDto(await response.json()))

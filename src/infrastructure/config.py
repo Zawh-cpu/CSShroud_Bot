@@ -1,5 +1,6 @@
 import json
 
+
 class AiConfig:
     def __init__(self, **kwargs):
         self.TOKEN = kwargs.get('TOKEN', "")
@@ -14,6 +15,17 @@ class AiConfig:
 
     def dump(self):
         return self.__dict__
+
+
+class EndpointConfig:
+    def __init__(self, **kwargs):
+        self.HOST = kwargs.get('HOST', "")
+        self.PORT = kwargs.get('PORT', "")
+        self.ALLOWED_HOST = kwargs.get('ALLOWED_HOST', tuple())
+
+    def dump(self):
+        return self.__dict__
+
 
 class Config:
     """ Singleton-класс для загрузки конфигурации из JSON. """
@@ -36,6 +48,7 @@ class Config:
             self.REDIS_DB = data.get("REDIS_DB", 0)
             self.LANGUAGES_FOLDER = data.get("LANGUAGES_FOLDER", "src/infrastructure/localization")
             self.AI = AiConfig(**data.get("AI", dict()))
+            self.ENDPOINT = EndpointConfig(**data.get("ENDPOINT", dict()))
 
         self.save_config()
 
@@ -49,5 +62,6 @@ class Config:
                 "REDIS_PORT": self.REDIS_PORT,
                 "REDIS_DB": self.REDIS_DB,
                 "LANGUAGES_FOLDER": self.LANGUAGES_FOLDER,
-                "AI": self.AI.dump()
+                "AI": self.AI.dump(),
+                "ENDPOINT": self.ENDPOINT.dump(),
             }, indent=4))

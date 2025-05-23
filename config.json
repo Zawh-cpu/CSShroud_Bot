@@ -12,5 +12,12 @@
         "BASE_URL": "https://api.proxyapi.ru",
         "TOKEN_LIMIT": 128,
         "MAX_RETRIES": 3
+    },
+    "ENDPOINT": {
+        "HOST": "localhost",
+        "PORT": "5216",
+        "ALLOWED_HOST": [
+            "::1"
+        ]
     }
 }

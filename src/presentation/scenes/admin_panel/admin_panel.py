@@ -1,0 +1,552 @@
+import aiogram
+import math
+import argon2
+import datetime as dt
+
+from aiogram import types
+from aiogram.fsm import scene
+from aiogram.filters import callback_data
+
+from . import tools
+
+from app import sql, langs, commander
+
+category = "admin_panel"
+
+
+class Selector(callback_data.CallbackData, prefix="ap-selector"):
+    id: int
+    action: str
+
+
+class SelectorIntItem(callback_data.CallbackData, prefix="ap-selectorint"):
+    id: int
+    action: str
+    selected: int
+
+
+class MainScene(tools.Scene, state="admin_panel"):
+
+    @scene.on.message.enter()
+    @scene.on.callback_query.enter()
+    @tools.handler(auth=False, category=category)
+    async def default_handler(self, query: types.CallbackQuery or types.Message, user: sql.User = None,
+                              session: sql.Session = None, language: str = None):
+        keyboard = [
+            [types.InlineKeyboardButton(text=await langs.translate("ui-tag-menu", language=language),
+                                        callback_data="menu")],
+            [types.InlineKeyboardButton(text=await langs.translate("ui-tag-ap-users", language=language),
+                                        callback_data="ap-users")],
+            [types.InlineKeyboardButton(text=await langs.translate("ui-tag-ap-make_announcement", language=language),
+                                        callback_data="ap-announcement")],
+        ]
+
+        return {"reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
+
+    @scene.on.callback_query(aiogram.F.data == "ap-users")
+    @tools.handler(auth=False)
+    async def users_list(self, query: types.CallbackQuery or types.Message, user: sql.User = None,
+                         session: sql.Session = None, language: str = None):
+        await self.wizard.goto(UsersList)
+
+    @scene.on.callback_query(aiogram.F.data == "ap-announcement")
+    @tools.handler(auth=False)
+    async def make_announcement(self, query: types.CallbackQuery or types.Message, user: sql.User = None,
+                                session: sql.Session = None, language: str = None):
+        await self.wizard.goto(MakeAnnouncement)
+
+
+class ManageUserScene(tools.Scene, state="admin_panel-users-manage"):
+    @scene.on.callback_query.enter()
+    @scene.on.message.enter()
+    @tools.handler(auth=True, category=category)
+    async def default_handler(self, query: types.CallbackQuery or types.Message, user: sql.User = None,
+                              session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        selected_user = (await self.wizard.get_data()).get("SelectedUser")
+        if not selected_user:
+            raise Exception("user_isnt_selected")
+
+        s_user = session.query(sql.User).filter(sql.User.Id == selected_user).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        text = (await langs.translate("profile-text")).format(s_user.Id, s_user.Nickname,
+                                                              "✅" if s_user.Login else "➖",
+                                                              "✅" if s_user.Password else "➖",
+                                                              await langs.translate(f"role-{s_user.Role.Name}"),
+                                                              await langs.translate(f"rate-{s_user.Rate.Name}"),
+                                                              s_user.PayedUntil.strftime(
+                                                                  "%Y-%m-%d %H:%M:%S") if s_user.PayedUntil else "➖",
+                                                              s_user.JoinedAt.strftime(
+                                                                  "%Y-%m-%d %H:%M:%S"),
+                                                              s_user.TelegramJoinedAt.strftime(
+                                                                  "%Y-%m-%d %H:%M:%S"))
+
+        keyboard = [
+            [types.InlineKeyboardButton(text=await langs.translate("ui-tag-menu"), callback_data="menu"),
+             types.InlineKeyboardButton(text=await langs.translate("ui-tag-back"),
+                                        callback_data="back")],
+            [types.InlineKeyboardButton(text=await langs.translate("ui-tag-admin_panel-user-delete"),
+                                        callback_data=Selector(id=s_user.Id, action="del").pack()),
+             types.InlineKeyboardButton(text=await langs.translate("ui-tag-admin_panel-user-unlink_tg"),
+                                        callback_data=Selector(id=s_user.Id, action="untg").pack())],
+            [types.InlineKeyboardButton(text=await langs.translate("ui-tag-admin_panel-user-set_role"),
+                                        callback_data=Selector(id=s_user.Id, action="role").pack()),
+             types.InlineKeyboardButton(text=await langs.translate("ui-tag-admin_panel-user-set_rate"),
+                                        callback_data=Selector(id=s_user.Id, action="rate").pack())],
+            [types.InlineKeyboardButton(text=await langs.translate("ui-tag-admin_panel-user-gen_password"),
+                                        callback_data=Selector(id=s_user.Id, action="genpass").pack())],
+            [types.InlineKeyboardButton(text=await langs.translate("ui-tag-admin_panel-user-ban"),
+                                        callback_data=Selector(id=s_user.Id,
+                                                               action="ban").pack()) if user.IsActive else types.InlineKeyboardButton(
+                text=await langs.translate("ui-tag-admin_panel-user-unban"),
+                callback_data=Selector(id=s_user.Id, action="unban").pack())]
+        ]
+
+        return {"text": text, "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "role"))
+    @tools.handler(auth=True, category=category, state="set_role")
+    async def set_role(self, query: types.CallbackQuery or types.Message, callback_data: Selector,
+                       user: sql.User = None,
+                       session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        s_user = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        roles = session.query(sql.Role).all()
+
+        keyboard = [
+            [types.InlineKeyboardButton(text="❌", callback_data=Selector(id=s_user.Id, action="back").pack())],
+            *[[types.InlineKeyboardButton(text=await langs.translate(f"role-{role.Name}", language=language),
+                                          callback_data=SelectorIntItem(id=s_user.Id, action="role",
+                                                                        selected=int(role.Id)).pack())] for role in roles]
+        ]
+
+        return {"category_args": (s_user.Nickname,), "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
+
+    @scene.on.callback_query(SelectorIntItem.filter(aiogram.F.action == "role"))
+    @tools.handler(auth=True)
+    async def set_role_confirm(self, query: types.CallbackQuery or types.Message, callback_data: SelectorIntItem,
+                               user: sql.User = None,
+                               session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        s_user = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        s_user.RoleId = callback_data.selected
+        session.commit()
+        await self.wizard.retake()
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "genpass"))
+    @tools.handler(auth=True, category=category, state="gen_password")
+    async def gen_password(self, query: types.CallbackQuery or types.Message, callback_data: Selector,
+                           user: sql.User = None,
+                           session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        s_user = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        new_password = await tools.gen_password(32)
+
+        hasher = argon2.PasswordHasher()
+        s_user.Password = hasher.hash(new_password)
+        session.commit()
+
+        keyboard = [
+            [types.InlineKeyboardButton(text=await langs.translate("ui-tag-menu"), callback_data="exit"),
+             types.InlineKeyboardButton(text=await langs.translate("ui-tag-back"),
+                                        callback_data="retake")]
+        ]
+
+        text = f"<code>{new_password}</code>"
+
+        return {"text": text, "category_args": (s_user.Nickname,),
+                "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "ban"))
+    @tools.handler(auth=True, category=category, state="ban_user")
+    async def ban_user(self, query: types.CallbackQuery or types.Message, callback_data: Selector,
+                       user: sql.User = None,
+                       session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        s_user = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        s_user.IsActive = False
+        session.commit()
+        await self.wizard.goto(ManageUserScene)
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "unban"))
+    @tools.handler(auth=True, category=category)
+    async def unban(self, query: types.CallbackQuery or types.Message, callback_data: Selector, user: sql.User = None,
+                    session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        s_user = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        s_user.IsActive = True
+        session.commit()
+
+        await self.wizard.goto(ManageUserScene)
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "del"))
+    @tools.handler(auth=False, category=category, state="delete_user")
+    async def delete_user(self, query: types.CallbackQuery or types.Message, callback_data: Selector,
+                          user: sql.User = None,
+                          session: sql.Session = None, language: str = None):
+
+        s_user = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        text = await langs.translate("admin_panel-delete_user-text")
+        keyboard = [
+            [types.InlineKeyboardButton(text="✅",
+                                        callback_data=Selector(id=s_user.Id, action=callback_data.action).pack()),
+             types.InlineKeyboardButton(text="❌", callback_data=Selector(id=s_user.Id, action="back").pack())]
+        ]
+
+        return {"text": text, "category_args": (s_user.Nickname,),
+                "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "delc"))
+    @tools.handler(auth=True)
+    async def delete_user_confirm(self, query: types.CallbackQuery or types.Message, callback_data: Selector,
+                                  user: sql.User = None,
+                                  session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        s_user = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        session.delete(s_user)
+        session.confirm()
+        await self.wizard.goto(UsersList)
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "untgc"))
+    @tools.handler(auth=True)
+    async def unlink_tg_user_confirm(self, query: types.CallbackQuery or types.Message, callback_data: Selector,
+                                     user: sql.User = None,
+                                     session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        s_user = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        s_user.TelegramId = None
+        s_user.TelegramJoinedAt = None
+
+        session.commit()
+
+        await self.wizard.update_data({"SelectedUser": callback_data.id})
+        await self.wizard.retake()
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "untg"))
+    @tools.handler(auth=False, category=category, state="unlink_tg")
+    async def unlink_tg_user(self, query: types.CallbackQuery or types.Message, callback_data: Selector,
+                             user: sql.User = None,
+                             session: sql.Session = None, language: str = None):
+
+        s_user = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        text = await langs.translate("admin_panel-unlink_tg_user-text")
+        keyboard = [
+            [types.InlineKeyboardButton(text="✅",
+                                        callback_data=Selector(id=s_user.Id, action="untgc").pack()),
+             types.InlineKeyboardButton(text="❌", callback_data=Selector(id=s_user.Id, action="back").pack())]
+        ]
+
+        return {"text": text, "category_args": (s_user.Nickname,),
+                "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "untgc"))
+    @tools.handler(auth=True)
+    async def unlink_tg_user_confirm(self, query: types.CallbackQuery or types.Message, callback_data: Selector,
+                                     user: sql.User = None,
+                                     session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        s_user = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        s_user.TelegramId = None
+        s_user.TelegramJoinedAt = None
+
+        session.commit()
+
+        await self.wizard.update_data({"SelectedUser": callback_data.id})
+        await self.wizard.retake()
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "rate"))
+    @tools.handler(auth=True, category=category, state="change_rate")
+    async def rates(self, query: types.CallbackQuery or types.Message, callback_data: Selector, user: sql.User = None,
+                    session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        usr = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not usr:
+            raise Exception("user_doesnt_exists")
+
+        text = (await langs.translate("admin_panel-change_rate-rates", language=language)).format(
+            await langs.translate(f"rate-{usr.Rate.Name}", language=language), usr.PayedUntil.strftime(
+                "%Y-%m-%d %H:%M:%S") if usr.PayedUntil else "➖")
+
+        rates = session.query(sql.Rate).all()
+
+        keyboard = [
+            [types.InlineKeyboardButton(text="❌", callback_data=Selector(id=usr.Id, action="back").pack())],
+            *[[types.InlineKeyboardButton(text=await langs.translate(f"rate-{rate.Name}", language=language),
+                                          callback_data=SelectorIntItem(id=usr.Id, action="rate",
+                                                                        selected=rate.Id).pack())] for rate in rates]
+        ]
+
+        return {"category_args": (usr.Nickname,), "text": text,
+                "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
+
+    @scene.on.callback_query(SelectorIntItem.filter(aiogram.F.action == "rate"))
+    async def rates_confirm(self, query: types.CallbackQuery or types.Message, callback_data: SelectorIntItem):
+        await self.wizard.update_data({"SelectedUser": callback_data.id, "SelectedRate": callback_data.selected})
+        await self.wizard.goto(ChangeRate)
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "back"))
+    async def retake_user(self, query, callback_data: Selector):
+        await self.wizard.update_data({"SelectedUser": callback_data.id})
+        await self.wizard.retake()
+
+
+class ChangeRate(tools.Scene, state="admin_panel-change_rate"):
+
+    @scene.on.callback_query.enter()
+    @tools.handler(auth=False, category=category, state="change_rate")
+    async def default_handler(self, query: types.CallbackQuery or types.Message, user: sql.User = None,
+                              session: sql.Session = None, language: str = None):
+        data = await self.wizard.get_data()
+        usr = session.query(sql.User).filter(sql.User.Id == data.get("SelectedUser")).first()
+        rate = session.query(sql.Rate).filter(sql.Rate.Id == data.get("SelectedRate")).first()
+
+        if not (usr and rate):
+            raise Exception("user_doesnt_exists")
+
+        rate_id = str(rate.Id)
+
+        text = (await langs.translate("admin_panel-change_rate-time-text", language=language)).format(
+            await langs.translate(f"rate-{rate.Name}", language=language), usr.PayedUntil.strftime(
+                "%Y-%m-%d %H:%M:%S") if usr.PayedUntil else "➖")
+
+        keyboard = [
+            [types.InlineKeyboardButton(text="❌", callback_data=Selector(id=usr.Id, action="back").pack())],
+            [types.InlineKeyboardButton(text="+1 month",
+                                        callback_data=SelectorIntItem(id=usr.Id, action=rate_id, selected=30).pack())],
+            [types.InlineKeyboardButton(text="+2 month",
+                                        callback_data=SelectorIntItem(id=usr.Id, action=rate_id, selected=60).pack())],
+            [types.InlineKeyboardButton(text="+3 month",
+                                        callback_data=SelectorIntItem(id=usr.Id, action=rate_id, selected=90).pack())],
+            [types.InlineKeyboardButton(text="+6 month",
+                                        callback_data=SelectorIntItem(id=usr.Id, action=rate_id, selected=180).pack())],
+            [types.InlineKeyboardButton(text="+1 year",
+                                        callback_data=SelectorIntItem(id=usr.Id, action=rate_id, selected=365).pack())]
+        ]
+
+        return {"text": text, "category_args": (usr.Nickname,),
+                "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
+
+    @scene.on.callback_query(Selector.filter(aiogram.F.action == "back"))
+    async def back_handler(self, query: types.CallbackQuery or types.Message, callback_data: Selector):
+        await self.wizard.update_data({"SelectedUser": callback_data.id})
+        await self.wizard.goto(ManageUserScene)
+
+    @scene.on.callback_query(SelectorIntItem.filter())
+    @tools.handler(auth=True)
+    async def set_callback_data(self, query: types.CallbackQuery or types.Message, callback_data: SelectorIntItem,
+                                user: sql.User = None,
+                                session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        s_user = session.query(sql.User).filter(sql.User.Id == callback_data.id).first()
+        if not s_user:
+            raise Exception("user_doesnt_exists")
+
+        s_user.RateId = int(callback_data.action)
+        s_user.PayedUntil = await tools.get_current_time() + dt.timedelta(
+            days=callback_data.selected) if not s_user.PayedUntil else s_user.PayedUntil + dt.timedelta(
+            days=callback_data.selected)
+        session.commit()
+
+        await self.wizard.update_data({"SelectedUser": callback_data.id})
+        await self.wizard.goto(ManageUserScene)
+
+    @scene.on.message()
+    @tools.handler(auth=True)
+    async def set_msg_data(self, query: types.CallbackQuery or types.Message, user: sql.User = None,
+                           session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("access_restricted")
+
+        data = await self.wizard.get_data()
+
+        userid = data.get("SelectedUser")
+        rateid = data.get("SelectedRate")
+
+        s_user = session.query(sql.User).filter(sql.User.Id == userid).first()
+
+        if not (s_user and rateid):
+            raise Exception("invalid_arguments")
+        # day/month/year
+
+        text = query.text
+        if not text.replace(".", "").isdigit():
+            raise Exception("invalid_arguments")
+
+        temp = text.split(".")
+        if len(temp) != 3:
+            raise Exception("arguments-invalid")
+
+        day, month, year = map(int, temp)
+
+        delta = dt.datetime(day=day, month=month, year=year)
+
+        s_user.RateId = rateid
+        s_user.PayedUntil = delta
+        session.commit()
+
+        await self.wizard.update_data({"SelectedUser": userid})
+        await self.wizard.goto(ManageUserScene)
+
+
+class MakeAnnouncement(tools.Scene, state="admin_panel-make_announcement"):
+
+    @scene.on.callback_query.enter()
+    @tools.handler(auth=False, category=category, state="make_announcement")
+    async def default_handler(self, query: types.CallbackQuery or types.Message, user: sql.User = None,
+                              session: sql.Session = None, language: str = None):
+        text = await langs.translate("admin_panel-make_announcement-text", language=language)
+
+        keyboard = [
+            [
+                types.InlineKeyboardButton(text=await langs.translate("ui-tag-menu", language=language),
+                                           callback_data="menu"),
+                types.InlineKeyboardButton(text=await langs.translate("ui-tag-back", language=language),
+                                           callback_data="admin"),
+            ]
+        ]
+
+        return {"text": text, "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
+
+    @scene.on.message()
+    @tools.handler(auth=True, category=category, state="make_announcement")
+    async def announcement_preview(self, query: types.CallbackQuery or types.Message, user: sql.User = None,
+                                   session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("permission-error")
+
+        text = query.text.split("\n", 1)
+        if len(text) < 2:
+            raise Exception("invalid_arguments", MakeAnnouncement)
+
+        title, content = text
+
+        announcement = sql.Announcement(
+            Title=title,
+            Content=content,
+            UserId=user.Id
+        )
+
+        session.add(announcement)
+        session.commit()
+
+        announcement_text = (await langs.translate("announcement-text", language=language)).format(
+            announcement.Title,
+            announcement.Content
+        )
+
+        text = (await langs.translate("admin_panel-make_announcement-preview", language=language)).format(
+            announcement_text)
+
+        keyboard = [
+            [
+                types.InlineKeyboardButton(text=await langs.translate("ui-tag-menu", language=language),
+                                           callback_data="menu"),
+                types.InlineKeyboardButton(text=await langs.translate("ui-tag-admin_panel", language=language),
+                                           callback_data="admin"),
+            ],
+            [
+                types.InlineKeyboardButton(text=await langs.translate("✅", language=language),
+                                           callback_data=SelectorIntItem(id=0, action="send", selected=announcement.Id).pack()),
+                types.InlineKeyboardButton(text=await langs.translate("❌", language=language),
+                                           callback_data=SelectorIntItem(id=0, action="revoke", selected=announcement.Id).pack()),
+            ]
+        ]
+
+        return {"text": text, "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard), }
+
+    @scene.on.callback_query(SelectorIntItem.filter(aiogram.F.action == "revoke"))
+    @tools.handler(auth=True, category=category, state="make_announcement")
+    async def revoke_announcement(self, query: types.CallbackQuery or types.Message, callback_data: SelectorIntItem, user: sql.User = None,
+                                   session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("permission-error")
+
+        announcement = session.query(sql.Announcement).filter(sql.Announcement.UserId == user.Id, sql.Announcement.Id == callback_data.selected).one()
+        if not announcement:
+            await self.wizard.retake()
+
+        announcement.IsRevoked = True
+        session.commit()
+
+        await self.wizard.retake()
+
+    @scene.on.callback_query(SelectorIntItem.filter(aiogram.F.action == "send"))
+    @tools.handler(auth=True, category=category, state="make_announcement")
+    async def send_announcement(self, query: types.CallbackQuery or types.Message, callback_data: SelectorIntItem,
+                                  user: sql.User = None,
+                                  session: sql.Session = None, language: str = None):
+        if not user.Role.AdminAccess:
+            raise Exception("permission-error")
+
+        announcement = session.query(sql.Announcement).filter(sql.Announcement.UserId == user.Id,
+                                                              sql.Announcement.Id == callback_data.selected).one()
+        if not announcement:
+            await self.wizard.retake()
+
+        announcement_text = (await langs.translate("announcement-text", language=language)).format(
+            announcement.Title,
+            announcement.Content
+        )
+
+        announcement.IsSent = True
+        session.commit()
+
+        users_ids = session.query(sql.User.TelegramId).where(sql.User.TelegramId != None).all()
+
+        for _id in users_ids:
+            await commander.make_announcement(_id.TelegramId, announcement_text)
+
