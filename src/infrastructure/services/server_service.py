@@ -19,5 +19,8 @@ class ServerService:
     async def get_rates(self):
         return [Rate(**data) for data in await self._api_repository.get_rates()]
 
+    async def get_roles(self):
+        return await self._api_repository.get_roles_async()
+
     async def get_protocols(self):
         return await self._api_repository.get_protocols()

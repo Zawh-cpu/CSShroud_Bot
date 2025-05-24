@@ -143,3 +143,7 @@ class ApiRepository:
     async def user_patch_async(self, user_id: str, dto: PatchUserDto, action_token: str) -> Result:
         async with self.session.patch(f"{self.base_url}/api/v1/user/{user_id}", json=dto.dump(), headers={"Authorization": f"Bearer {action_token}"}) as response:
             return Result(status_code=response.status, value=None)
+
+    async def get_roles_async(self) -> Result:
+        async with self.session.patch(f"{self.base_url}/api/v1/role/roles") as response:
+            return Result(status_code=response.status, value=None)

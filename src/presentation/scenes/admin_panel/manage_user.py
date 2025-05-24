@@ -79,6 +79,13 @@ class ManageUserScene(tools.Scene, state="admin_panel-users-manage"):
         await self.wizard.update_data({"selected_user": callback_data.i})
         await self.wizard.goto(DeleteScene)
 
+    @scene.on.callback_query(tools.OptSelector.filter(aiogram.F.o == "rol"))
+    async def set_role(self, query: types.CallbackQuery or types.Message, callback_data: tools.OptSelector,
+                     user: UserSession = None):
+
+        await self.wizard.update_data({"selected_user": callback_data.i})
+        await self.wizard.goto(DeleteScene)
+
     @scene.on.callback_query(tools.OptSelector.filter(aiogram.F.o == "c-on"))
     @tools.request_handler(auth=True)
     @inject
