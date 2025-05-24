@@ -54,3 +54,10 @@ async def command_keys(message: types.Message, state: context.FSMContext, scenes
 async def command_add_key(message: types.Message, state: context.FSMContext, scenes: scene.ScenesManager):
     await state.update_data({"by_command": True})
     await scenes.enter(add_key.SelectProtocol)
+
+
+@router.message(filters.Command("admin"))
+@router.callback_query(aiogram.F.data == "admin")
+async def command_admin(message: types.Message, state: context.FSMContext, scenes: scene.ScenesManager):
+    await state.update_data({"by_command": True})
+    await scenes.enter(admin_panel.MainScene)

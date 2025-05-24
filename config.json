@@ -1,7 +1,7 @@
 {
     "BASE_URL": "http://localhost:5271",
     "API_KEY": "your-secret-key",
-    "BOT_TOKEN": "6141560401:AAFHK2Wo8mC7dxqlYwuFtNe8gGrG08DA_X8",
+    "BOT_TOKEN": "6141560401:AAGYePF0d1QqJfn2WYlC2UgV-PddZLtFNd0",
     "REDIS_HOST": "localhost",
     "REDIS_PORT": 6380,
     "REDIS_DB": 0,

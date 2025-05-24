@@ -4,7 +4,7 @@ from src import UserData, VpnProtocol
 from src.application.dtos.key_connection_dto import KeyConnectionDto
 from src.core import UserSessionTokens
 from src.core import Key
-from src.application.dtos import KeysDto, AddKeyDto, Result, PatchKeyDto
+from src.application.dtos import KeysDto, AddKeyDto, Result, PatchKeyDto, GetUsersDto, GetUserDto, PatchUserDto
 
 
 class ApiRepository:
@@ -113,9 +113,6 @@ class ApiRepository:
 
     async def key_delete(self, key_id: str, action_token: str) -> Result:
         async with self.session.delete(f"{self.base_url}/api/v1/key/{key_id}", headers={"Authorization": f"Bearer {action_token}"}) as response:
-            if response.status != 200:
-                return Result(status_code=response.status, value=None)
-
             return Result(status_code=response.status, value=None)
 
     async def key_get_connect_data(self, key_id: str, action_token: str) -> Result:
@@ -130,4 +127,19 @@ class ApiRepository:
             if response.status != 200:
                 return Result(status_code=response.status, value=None)
 
-            return Result(status_code=response.status, value=UsersDto(await response.json()))
+            return Result(status_code=response.status, value=GetUsersDto(users_count=int(response.headers.get("X-Total-Count", "0")), users=[GetUserDto(x) for x in await response.json()]))
+
+    async def get_user_by_id_info_async(self, user_id: str, action_token: str) -> Result:
+        async with self.session.get(f"{self.base_url}/api/v1/user/{user_id}", headers={"Authorization": f"Bearer {action_token}"}) as response:
+            if response.status != 200:
+                return Result(status_code=response.status, value=None)
+
+            return Result(status_code=response.status, value=UserData(await response.json()))
+
+    async def user_delete_async(self, user_id: str, action_token: str) -> Result:
+        async with self.session.delete(f"{self.base_url}/api/v1/user/{user_id}", headers={"Authorization": f"Bearer {action_token}"}) as response:
+            return Result(status_code=response.status, value=None)
+
+    async def user_patch_async(self, user_id: str, dto: PatchUserDto, action_token: str) -> Result:
+        async with self.session.patch(f"{self.base_url}/api/v1/user/{user_id}", json=dto.dump(), headers={"Authorization": f"Bearer {action_token}"}) as response:
+            return Result(status_code=response.status, value=None)

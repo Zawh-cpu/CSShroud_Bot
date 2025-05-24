@@ -13,6 +13,10 @@ from src.infrastructure.services.server_service import ServerService
 from src.presentation import tools
 from src.container import Container
 
+from .users_list import UsersList
+from .manage_user import ManageUserScene
+from .delete import DeleteScene
+
 
 category = "admin_panel"
 
@@ -24,7 +28,7 @@ class MainScene(tools.Scene, state="admin_panel"):
     @tools.request_handler(auth=True, bypass_if_command=True, category=category)
     @inject
     async def default_handler(self, query: types.CallbackQuery or types.Message,
-                              translator: Translator = Provide[Container.translator], server_service: ServerService = Provide[Container.server_service], user: UserSession = None):
+                              translator: Translator = Provide[Container.translator], user: UserSession = None):
         keyboard = [
             [types.InlineKeyboardButton(text=translator.translate("ui-tag-menu"),
                                         callback_data="menu")],
@@ -34,7 +38,7 @@ class MainScene(tools.Scene, state="admin_panel"):
 
         return {"reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
 
-    @scene.on.callback_query(aiogram.F.data == "ap-users")
+    @scene.on.callback_query(aiogram.F.data == "users")
     # @tools.request_handler(auth=False)
     async def users_list(self, query: types.CallbackQuery or types.Message, user: UserSession = None):
         await self.wizard.goto(UsersList)

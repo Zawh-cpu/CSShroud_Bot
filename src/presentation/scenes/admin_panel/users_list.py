@@ -7,22 +7,21 @@ from aiogram.fsm import scene, context
 from dependency_injector.wiring import inject, Provide
 
 from src import ApiRepository
-from src.presentation.tools.selector import IntSelector
 from src.core import UserSession
 from src.infrastructure.services import Translator
-from src.infrastructure.services.rights_service import RightsService, Rights
-from src.infrastructure.services.server_service import ServerService
 from src.presentation import tools
 from src.container import Container
 from src.infrastructure.services.rights_service import RightsService, Rights
+from src.application import dtos
 
+from .manage_user import ManageUserScene
 
 category = "admin_panel"
 
 
 class UsersList(tools.PageScene, state="admin_panel-users"):
-    _field_name = "SelectedUser"
-    # _next = ManageUserScene
+    _data_label = "selected_user"
+    _next = ManageUserScene
 
     @scene.on.message.enter()
     @scene.on.callback_query.enter()
@@ -33,14 +32,13 @@ class UsersList(tools.PageScene, state="admin_panel-users"):
         if not RightsService.has_access(user.data.role.permissions, Rights.AdminAccess):
             raise Exception("permission-error")
 
-        data = await self.wizard.get_data()
-        page = data.get("page", 0)
-        users = api_repository.get_users(user.tokens.action_token, page=page, size=10)
-        max_pages = math.ceil(users_count / 10)
+        page = (await self.wizard.get_value("page")) or 0
+        users_dto: dtos.Result = await api_repository.get_users(user.tokens.action_token, page=page, size=10)
+        if not users_dto.is_success():
+            raise Exception("error-unknown")
+        max_pages = math.ceil(users_dto.value.users_count / 10)
         if max_pages < 1:
             max_pages = 1
-
-        users = session.query(sql.User).order_by(sql.User.Id.asc()).offset(10 * page).limit(10).all()
 
         keyboard = [
             [
@@ -50,8 +48,8 @@ class UsersList(tools.PageScene, state="admin_panel-users"):
                                            callback_data="admin"),
             ],
             *[[types.InlineKeyboardButton(
-                text=f"{"🟢" if usr.IsActive else "🔴"}  #{usr.Id} | {usr.Nickname} [TG:{usr.TelegramId}]",
-                callback_data=tools.Selector(selected=str(usr.Id)).pack())] for usr in users],
+                text=f"({"🎖️" if usr.is_verified else "🔴"})  #{translator.key_short_id(usr.id)} | {usr.nickname} [TG:{usr.telegram_id}]",
+                callback_data=tools.Selector(i=str(usr.id)).pack())] for usr in users_dto.value.users],
             [
                 types.InlineKeyboardButton(text="◀️", callback_data="--page" if page > 0 else "None"),
                 types.InlineKeyboardButton(text=f"{page + 1} / {max_pages}", callback_data="None"),

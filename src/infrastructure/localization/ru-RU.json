@@ -22,6 +22,9 @@
   "ui-tag-cancel-short": "❌",
   "ui-tag-confirm": "✅ Подтвердить",
   "ui-tag-confirm-short": "✅",
+  "ui-tag-admin_panel-user-delete": "\uD83D\uDDD1 Удалить пользователя",
+  "ui-tag-admin_panel-user-check-on": "\uD83C\uDF96\uFE0F✅ Верифицировать пользователя",
+  "ui-tag-admin_panel-user-check-off": "\uD83C\uDF96\uFE0F❌ Снять верификацию с пользователя",
   "profile": "\uD83D\uDC68\uD83C\uDFFD\u200D\uD83D\uDCBB Профиль",
   "profile-text": "  - <b>✅ Верификация:</b> {verification_status}\n\n  - <b>\uD83C\uDD94 ID:</b> {id}\n  - <b>\uD83E\uDDD1\u200D\uD83D\uDCBC Никнейм:</b> {nickname}\n  - <b>\uD83D\uDD11 Логин:</b> {login}\n\n<b>Статус</b>\n  - <b>\uD83C\uDF96\uFE0F Роль:</b> {role_name}\n  - <b>\uD83D\uDCBC Тариф:</b> {rate_name}\n  - <b>⏳ Оплачен до:</b> {payed_until}\n\n  - <b>\uD83D\uDDD3\uFE0F Аккаунт создан:</b> {created_at}",
   "rate-default": "➖",
@@ -55,5 +58,6 @@
   "hook-mail-preserved-rate_expired-title": "\uD83E\uDD40 Тариф истёк",
   "hook-mail-preserved-rate_expired-content": "Добрый день, уведомляем вас, что ваш тариф истёк. Ваши ключи и дополнительные опции были отключены.\n\nДля восстановления тарифа обратитесь к @ZawhZ",
   "hook-mail-preserved-rate_expiration-title": "⚠\uFE0F Осталось {0} дн(я/ей) до истечения тарифа!",
-  "hook-mail-preserved-rate_expiration-content": "Добрый день, уведомляем вас, что до окончания срока действия вашего тарифа осталось <b>{days_left} дн(я/ей).</b>\n\n<blockquote>Сведения к оплате:\n\n    <b>\uD83D\uDCBC Тариф</b>: {rate_name}\n    <b>\uD83D\uDCB8 Необходимо внести</b>: {rate_cost}₽\n\n</blockquote>\nДля продления тарифа обратитесь к @ZawhZ"
+  "hook-mail-preserved-rate_expiration-content": "Добрый день, уведомляем вас, что до окончания срока действия вашего тарифа осталось <b>{days_left} дн(я/ей).</b>\n\n<blockquote>Сведения к оплате:\n\n    <b>\uD83D\uDCBC Тариф</b>: {rate_name}\n    <b>\uD83D\uDCB8 Необходимо внести</b>: {rate_cost}₽\n\n</blockquote>\nДля продления тарифа обратитесь к @ZawhZ",
+  "admin_panel-manage_user-delete-text": "Вы уверены, что хотите удалить этого <b>(#<i>{id}</i>)</b> пользователя?"
 }
