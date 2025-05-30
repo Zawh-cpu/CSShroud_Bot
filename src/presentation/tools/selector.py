@@ -11,3 +11,8 @@ class IntSelector(callback_data.CallbackData, prefix="islr"):
 class OptSelector(callback_data.CallbackData, prefix="oslr"):
     i: str
     o: str
+
+
+class DuoSelector(callback_data.CallbackData, prefix="dslr"):
+    i: str
+    j: str

@@ -4,7 +4,7 @@ from src import UserData, VpnProtocol
 from src.application.dtos.key_connection_dto import KeyConnectionDto
 from src.core import UserSessionTokens
 from src.core import Key
-from src.application.dtos import KeysDto, AddKeyDto, Result, PatchKeyDto, GetUsersDto, GetUserDto, PatchUserDto
+from src.application.dtos import KeysDto, AddKeyDto, Result, PatchKeyDto, GetUsersDto, GetUserDto, PatchUserDto, RoleDto, FastLoginInfoDto
 
 
 class ApiRepository:
@@ -145,5 +145,15 @@ class ApiRepository:
             return Result(status_code=response.status, value=None)
 
     async def get_roles_async(self) -> Result:
-        async with self.session.patch(f"{self.base_url}/api/v1/role/roles") as response:
-            return Result(status_code=response.status, value=None)
+        async with self.session.get(f"{self.base_url}/api/v1/role/roles") as response:
+            if response.status != 200:
+                return Result(status_code=response.status, value=None)
+
+            return Result(status_code=response.status, value=[RoleDto(x) for x in await response.json()])
+
+    async def get_fastlogin_data_async(self, fl_id: str) -> Result:
+        async with self.session.get(f"{self.base_url}/api/v1/auth/fast_login/{fl_id}/info") as response:
+            if response.status != 200:
+                return Result(status_code=response.status, value=None)
+
+            return Result(status_code=response.status, value=FastLoginInfoDto(await response.json()))

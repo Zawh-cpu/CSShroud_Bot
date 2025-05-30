@@ -12,14 +12,16 @@ from src.infrastructure.services.rights_service import RightsService, Rights
 from src.presentation import tools
 from src.container import Container
 
+from .set_rate_select_time import SetRateTimeScene
+
 category = "admin_panel"
 
 
-class SetRoleScene(scene.Scene, state="admin_panel-set_role"):
+class SetRateScene(scene.Scene, state="admin_panel-set_rate"):
 
     @scene.on.message.enter()
     @scene.on.callback_query.enter()
-    @tools.request_handler(auth=False, category=category, state="set_role")
+    @tools.request_handler(auth=False, category=category, state="set_rate")
     @inject
     async def default_handler(self, query: types.CallbackQuery or types.Message,
                               translator: Translator = Provide[Container.translator],
@@ -29,9 +31,9 @@ class SetRoleScene(scene.Scene, state="admin_panel-set_role"):
         if not selected_user:
             raise Exception("error-user_not_selected")
 
-        roles = await server_service.get_roles()
+        rates = sorted(await server_service.get_rates(), key=lambda x: (x.cost, x.id))
 
-        text = translator.translate("admin_panel-manage_user-set_role-text").format(id=translator.key_short_id(selected_user))
+        text = translator.translate("admin_panel-manage_user-set_rate-text").format(id=translator.key_short_id(selected_user))
 
         keyboard = [
             [
@@ -40,7 +42,7 @@ class SetRoleScene(scene.Scene, state="admin_panel-set_role"):
                                            callback_data=tools.OptSelector(i=selected_user, o="back").pack()),
                 types.InlineKeyboardButton(text=translator.translate("ui-tag-my_keys"), callback_data="keys")
             ],
-            *[[types.InlineKeyboardButton(text=translator.translate(f"role-{role.name}"), callback_data=tools.DuoSelector(i=selected_user, j=str(role.id)).pack())] for role in roles.value]
+            *[[types.InlineKeyboardButton(text=translator.translate(f"rate-{rate.name}"), callback_data=tools.DuoSelector(i=selected_user, j=str(rate.id)).pack())] for rate in rates]
         ]
 
         return {"text": text, "category_args": (translator.key_short_id(selected_user),), "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
@@ -48,16 +50,12 @@ class SetRoleScene(scene.Scene, state="admin_panel-set_role"):
     @scene.on.callback_query(tools.DuoSelector.filter())
     @tools.request_handler(auth=True)
     @inject
-    async def set_role(self, query: types.CallbackQuery or types.Message, callback_data: tools.Selector,
+    async def select_time(self, query: types.CallbackQuery or types.Message, callback_data: tools.Selector,
                      api_repository: ApiRepository = Provide[Container.api_repository],
                      user: UserSession = None):
 
-        if not (await api_repository.user_patch_async(callback_data.i, PatchUserDto(
-            role_id=int(callback_data.j),
-        ), user.tokens.action_token)).is_success():
-            raise Exception("error-invalid_operation")
-
-        await self.wizard.back()
+        await self.wizard.update_data({"selected_user": callback_data.i, "selected_rate": callback_data.j})
+        await self.wizard.goto(SetRateTimeScene)
 
     @scene.on.callback_query(tools.OptSelector.filter(aiogram.F.o == "back"))
     async def back(self, query: types.CallbackQuery or types.Message, callback_data: tools.OptSelector):

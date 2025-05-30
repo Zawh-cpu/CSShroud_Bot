@@ -16,6 +16,9 @@ from src.container import Container
 from .users_list import UsersList
 from .manage_user import ManageUserScene
 from .delete import DeleteScene
+from .set_role import SetRoleScene
+from .set_rate import SetRateScene
+from .set_rate_select_time import SetRateTimeScene
 
 
 category = "admin_panel"
@@ -32,7 +35,7 @@ class MainScene(tools.Scene, state="admin_panel"):
         keyboard = [
             [types.InlineKeyboardButton(text=translator.translate("ui-tag-menu"),
                                         callback_data="menu")],
-            [types.InlineKeyboardButton(text=translator.translate("ui-tag-ap-users"),
+            [types.InlineKeyboardButton(text=translator.translate("ui-tag-admin_panel-users"),
                                         callback_data="users")]
         ]
 

@@ -15,6 +15,8 @@ from src.infrastructure.services.rights_service import RightsService, Rights
 from src.application import dtos
 
 from .delete import DeleteScene
+from .set_role import SetRoleScene
+from .set_rate import SetRateScene
 
 category = "admin_panel"
 
@@ -22,7 +24,7 @@ category = "admin_panel"
 class ManageUserScene(tools.Scene, state="admin_panel-users-manage"):
     @scene.on.message.enter()
     @scene.on.callback_query.enter()
-    @tools.request_handler(auth=True, category=category)
+    @tools.request_handler(auth=True, category=category, state="m_user")
     @inject
     async def default_handler(self, query: types.CallbackQuery or types.Message,
                               translator: Translator = Provide[Container.translator],
@@ -70,7 +72,7 @@ class ManageUserScene(tools.Scene, state="admin_panel-users-manage"):
                                         callback_data=tools.OptSelector(i=user_dto.value.id, o="rat").pack())]
         ]
 
-        return {"text": text, "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
+        return {"text": text, "category_args": (translator.key_short_id(selected_user),), "reply_markup": types.InlineKeyboardMarkup(inline_keyboard=keyboard)}
 
     @scene.on.callback_query(tools.OptSelector.filter(aiogram.F.o == "del"))
     async def delete(self, query: types.CallbackQuery or types.Message, callback_data: tools.OptSelector,
@@ -84,7 +86,14 @@ class ManageUserScene(tools.Scene, state="admin_panel-users-manage"):
                      user: UserSession = None):
 
         await self.wizard.update_data({"selected_user": callback_data.i})
-        await self.wizard.goto(DeleteScene)
+        await self.wizard.goto(SetRoleScene)
+
+    @scene.on.callback_query(tools.OptSelector.filter(aiogram.F.o == "rat"))
+    async def set_rate(self, query: types.CallbackQuery or types.Message, callback_data: tools.OptSelector,
+                     user: UserSession = None):
+
+        await self.wizard.update_data({"selected_user": callback_data.i})
+        await self.wizard.goto(SetRateScene)
 
     @scene.on.callback_query(tools.OptSelector.filter(aiogram.F.o == "c-on"))
     @tools.request_handler(auth=True)

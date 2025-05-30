@@ -5,3 +5,5 @@ from .result import Result
 from .key_connection_dto import *
 from .users_dto import *
 from .patch_user_dto import *
+from .role_dto import *
+from .fastlogin_info_dto import *

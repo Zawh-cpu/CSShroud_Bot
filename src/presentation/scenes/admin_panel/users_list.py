@@ -25,7 +25,7 @@ class UsersList(tools.PageScene, state="admin_panel-users"):
 
     @scene.on.message.enter()
     @scene.on.callback_query.enter()
-    @tools.request_handler(auth=True, bypass_if_command=True, category=category)
+    @tools.request_handler(auth=True, bypass_if_command=True, category=category, state="users")
     @inject
     async def default_handler(self, query: types.CallbackQuery or types.Message,
                               translator: Translator = Provide[Container.translator], api_repository: ApiRepository = Provide[Container.api_repository], user: UserSession = None):
