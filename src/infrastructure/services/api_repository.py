@@ -157,3 +157,7 @@ class ApiRepository:
                 return Result(status_code=response.status, value=None)
 
             return Result(status_code=response.status, value=FastLoginInfoDto(await response.json()))
+
+    async def fastlogin_try_claim_async(self, fl_id: str, variant: int, action_token: str) -> Result:
+        async with self.session.patch(f"{self.base_url}/api/v1/auth/fast_login/{fl_id}/verify/{variant}", headers={"Authorization": f"Bearer {action_token}"}) as response:
+            return Result(status_code=response.status)

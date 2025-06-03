@@ -23,6 +23,7 @@
   "ui-tag-cancel-short": "❌",
   "ui-tag-confirm": "✅ Подтвердить",
   "ui-tag-confirm-short": "✅",
+  "ui-tag-ok": "\uD83D\uDC19 Ок",
   "ui-tag-admin_panel": "\uD83D\uDDA5 Админ панель",
   "ui-tag-admin_panel-users": "\uD83E\uDEC2 Пользователи",
   "ui-tag-admin_panel-user-delete": "\uD83D\uDDD1 Удалить пользователя",
@@ -73,5 +74,9 @@
   "admin_panel-manage_user-set_rate-text": "Выберите новый тариф",
   "admin_panel-set_rate-time": "\uD83D\uDCBC\uD83D\uDD50 Изменить тариф (<b>#<u>{0}</u></b>)",
   "admin_panel-manage_user-set_rate_time-text": "<b>Текущий тариф</b>: {0}\n<b>Оплачен до</b>: {1}\n\nВыберите время окончания тарифа.\n\nВремя будет выставлено по формуле:\n    <b>Прошлое время + Выбранное</b>\nили если время не установлено\n    <b>Текущее время + Выбранное</b>\n\nВы так же можете указать своё время <u>окончания <i>(UTC+0)</i></u>:\n    <b>2000.01.15</b>",
-  "admin_panel-manage_user-delete-text": "Вы уверены, что хотите удалить этого <b>(#<i>{id}</i>)</b> пользователя?"
+  "admin_panel-manage_user-delete-text": "Вы уверены, что хотите удалить этого <b>(#<i>{id}</i>)</b> пользователя?",
+  "verify_auth": "\uD83D\uDEAA Авторизация",
+  "verify_handler-text": "Вы уверены, что хотите авторизоваться в приложении\nиспользуя этот телеграм аккаунт?\n\n<i>Для подтверждения выберите число, показываемое на экране приложения.</i>",
+  "verify_handler-successfully-text": "Авторизация прошла успешна.",
+  "verify_handler-failed-text": "Авторизация провалилась\n\nВозможно вы выбрали некорректный номер."
 }
