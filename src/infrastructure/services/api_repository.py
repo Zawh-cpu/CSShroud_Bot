@@ -4,7 +4,7 @@ from src import UserData, VpnProtocol
 from src.application.dtos.key_connection_dto import KeyConnectionDto
 from src.core import UserSessionTokens
 from src.core import Key
-from src.application.dtos import KeysDto, AddKeyDto, Result, PatchKeyDto, GetUsersDto, GetUserDto, PatchUserDto, RoleDto, FastLoginInfoDto
+from src.application.dtos import KeysDto, AddKeyDto, Result, PatchKeyDto, GetUsersDto, GetUserDto, PatchUserDto, RoleDto, QuickAuthInfoDto
 
 
 class ApiRepository:
@@ -21,13 +21,13 @@ class ApiRepository:
     async def close(self):
         await self.session.close()
 
-    async def signin_by_telegram_id_async(self, telegram_id: int) -> UserSessionTokens or None:
+    async def signin_by_telegram_id_async(self, telegram_id: int) -> Result[UserSessionTokens]:
         async with self.session.post(f"{self.base_url}/api/v1/telegram/signin", json={"telegramId": telegram_id}) as response:
             if response.status != 200:
-                return None
+                return Result(status_code=response.status, value=None)
 
             tokens = await response.json()
-            return UserSessionTokens(action_token=tokens.get("actionToken"), refresh_token=tokens.get("refreshToken"))
+            return Result(status_code=response.status, value=UserSessionTokens(action_token=tokens.get("actionToken"), refresh_token=tokens.get("refreshToken")))
 
     async def signup_telegram_id_async(self, first_name: str, last_name: str, telegram_id: int) -> UserSessionTokens or None:
         async with self.session.post(f"{self.base_url}/api/v1/telegram/signup", json={"firstName": first_name, "lastName": last_name, "telegramId": telegram_id}) as response:
@@ -151,13 +151,15 @@ class ApiRepository:
 
             return Result(status_code=response.status, value=[RoleDto(x) for x in await response.json()])
 
-    async def get_fastlogin_data_async(self, fl_id: str) -> Result:
-        async with self.session.get(f"{self.base_url}/api/v1/auth/fast_login/{fl_id}/info") as response:
+    async def get_quickauth_data_async(self, fl_id: str) -> Result:
+        async with self.session.get(f"{self.base_url}/api/v1/auth/quick-auth/{fl_id}/info") as response:
             if response.status != 200:
                 return Result(status_code=response.status, value=None)
 
-            return Result(status_code=response.status, value=FastLoginInfoDto(await response.json()))
+            return Result(status_code=response.status, value=QuickAuthInfoDto(await response.json()))
 
-    async def fastlogin_try_claim_async(self, fl_id: str, variant: int, action_token: str) -> Result:
-        async with self.session.patch(f"{self.base_url}/api/v1/auth/fast_login/{fl_id}/verify/{variant}", headers={"Authorization": f"Bearer {action_token}"}) as response:
+    async def quickauth_try_claim_async(self, fl_id: str, variant: int, action_token: str) -> Result:
+        async with self.session.post(f"{self.base_url}/api/v1/auth/quick-auth/{fl_id}/confirm?variant={variant}", headers={"Authorization": f"Bearer {action_token}"}) as response:
+            print(response.status)
+            print(await response.text())
             return Result(status_code=response.status)

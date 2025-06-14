@@ -26,12 +26,15 @@ class MainScene(scene.Scene, state="verify_auth"):
                               api_repository: ApiRepository = Provide[Container.api_repository],
                               user: UserSession = None):
         verify_id = await self.wizard.get_value("verify_id")
+        variants = await self.wizard.get_value("verify_variants")
         if verify_id is None:
             raise Exception("error-verify")
 
-        fl_data: dtos.Result[dtos.FastLoginInfoDto] = await api_repository.get_fastlogin_data_async(verify_id)
+        fl_data: dtos.Result[dtos.QuickAuthInfoDto] = await api_repository.get_quickauth_data_async(verify_id)
         if not fl_data.is_success():
-            raise Exception("error-verify")
+           raise Exception("error-verify")
+
+        print(fl_data.value)
 
         text = translator.translate("verify_handler-text")
         keyboard = [
@@ -52,7 +55,7 @@ class MainScene(scene.Scene, state="verify_auth"):
     @tools.request_handler(auth=True)
     @inject
     async def cancel(self, query: types.CallbackQuery, callback_data: tools.DuoSelector, api_repository: ApiRepository = Provide[Container.api_repository], user: UserSession = None):
-        await api_repository.fastlogin_try_claim_async(callback_data.i, -1000, user.tokens.action_token)
+        await api_repository.quickauth_try_claim_async(callback_data.i, -1000, user.tokens.action_token)
         await self.wizard.exit()
 
 
@@ -63,7 +66,7 @@ class MainScene(scene.Scene, state="verify_auth"):
                             api_repository: ApiRepository = Provide[Container.api_repository], translator: Translator = Provide[Container.translator],
                             user: UserSession = None):
 
-        result = await api_repository.fastlogin_try_claim_async(callback_data.i, int(callback_data.j),
+        result = await api_repository.quickauth_try_claim_async(callback_data.i, int(callback_data.j),
                                                                 user.tokens.action_token)
         if result.is_success():
             text = translator.translate("verify_handler-successfully-text")

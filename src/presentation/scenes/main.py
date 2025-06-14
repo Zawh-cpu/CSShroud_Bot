@@ -14,7 +14,7 @@ class MainScene(scene.Scene, reset_data_on_enter=False, reset_history_on_enter=T
 
     @scene.on.message.enter(Translator)
     @scene.on.callback_query.enter(Translator)
-    @tools.request_handler(auth=True, bypass_if_command=True)
+    @tools.request_handler(auth=True, bypass_if_command=True, category="menu")
     @inject
     async def default_handler(self, query: types.CallbackQuery or types.Message, translator: Translator = Provide[Container.translator], user: UserSession=None):
         # print("main -> user", user)

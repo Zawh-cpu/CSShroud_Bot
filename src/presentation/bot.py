@@ -30,8 +30,8 @@ scene_register.register(scenes.key.MainScene, scenes.key.RenameScene, scenes.key
 scene_register.register(scenes.add_item.MainScene, scenes.add_item.PhotosAndName, scenes.add_item.ConfirmationScene)
 scene_register.register(scenes.verify_auth.MainScene)
 
-dispatcher.include_router(command_router)
 dispatcher.include_router(deep_link.start_router)
+dispatcher.include_router(command_router)
 
 from src.presentation.middlewares import album_middleware
 

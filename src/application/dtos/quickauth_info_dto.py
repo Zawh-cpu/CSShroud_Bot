@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class FastLoginInfoDto:
+class QuickAuthInfoDto:
     id: str
     variants: list[int]
 

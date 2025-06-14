@@ -2,6 +2,7 @@ import time
 
 from src import UserData, UserRole
 from src.core import UserSession, UserSessionTokens
+from src.application import dtos
 from src.infrastructure.services import ApiRepository, RedisRepository
 
 from src.infrastructure.utility import TokenParser, JwtToken
@@ -25,15 +26,15 @@ class UserRepository:
         needs_save = -1
 
         if not session:
-            tokens: UserSessionTokens = await self.api_repository.signin_by_telegram_id_async(telegram_id)
-            if not tokens.action_token:
+            tokens: dtos.Result[UserSessionTokens] = await self.api_repository.signin_by_telegram_id_async(telegram_id)
+            if not tokens.is_success():
                 return None
 
-            data: UserData = await self.api_repository.get_user_info_async(tokens.action_token)
+            data: UserData = await self.api_repository.get_user_info_async(tokens.value.action_token)
             if not data:
                 return None
 
-            session = UserSession(user_id=data.id, tokens=tokens, data=data)
+            session = UserSession(user_id=data.id, tokens=tokens.value, data=data)
             self.save_session(telegram_id, session)
             return session
 
